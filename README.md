@@ -28,7 +28,7 @@ This repository consists of many matrix multiplication algorithms.
 
 #### Experiment result ####
 
-| Index |Test case| Algorithm 1 | Algorithm 2 | Algorithm 3 | Algorithm 4 | Algorithm 5 | 
+| Index |Test case| Algorithm 1(msecs) | Algorithm 2(msecs) | Algorithm 3(msecs) | Algorithm 4(msecs) | Algorithm 5(msecs) | 
 | --- | --- | ----------- | ----------- | ----------- | ----------- | ----------- |
 | 1 | (128 x 128) x <br>(128 x 128) =><br> (128 x 128) | 7.72624 | 1.52 | 1.49 | 1.78 | 1.67 |
 | 2 | (1024 x 1024) x <br>(1024 x 1024) =><br> (1024 x 1024) | 4,978.36 | 26.07 | 17.88 | 68.35 | 67.70 | 
@@ -43,7 +43,7 @@ This repository consists of many matrix multiplication algorithms.
 | 11 | (32000 x 100) x <br>(100 x 100) =><br> (32000 x 100) | (Predicted) 1178 | 243.78 | 247.62 | 254.87 | 242.43 |
 
 
-| Index | Test case | Algorithm 6 | Algorithm 7 | Algorithm 8 | Algorithm 9 | Algorithm 10 |
+| Index | Test case | Algorithm 6(msecs) | Algorithm 7(msecs) | Algorithm 8(msecs) | Algorithm 9(msecs) | Algorithm 10(msecs) |
 | --- | --- | ----------- | ----------- | ----------- | ----------- | ----------- | 
 | 1 | (128 x 128) x <br>(128 x 128) =><br> (128 x 128) | 1.60 | 1.57 | 1.58 | 1.56 | 1.50 |
 | 2 | (1024 x 1024) x <br>(1024 x 1024) =><br> (1024 x 1024) | 35.16 | 32.35 | 21.92 | 19.57 | 18.20 |
@@ -57,4 +57,5 @@ This repository consists of many matrix multiplication algorithms.
 | 10 | (100 x 32000) x <br>(32000 x 100) =><br> (100 x 100) | 113.57 | 112.62 | 103.34 | 102.57 | 99.87 |
 | 11 | (32000 x 100) x <br>(100 x 100) =><br> (32000 x 100) | 250.83 | 248.60 | 243.25 | 244.34 | 244.23 |
 
+#### Ranking ####
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/ExperimentResult.png?raw=true)
