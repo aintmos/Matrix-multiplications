@@ -1,14 +1,27 @@
-#include <iostream>
+#include <fstream>
 #include <time.h>
 #include "GPUdebug.hpp"
 #include "common.hpp"
+
+void MM_Correct(dataType** matrix, dataType** input, dataType** res,
+    const size_t sizeX, const size_t sizeRange, const size_t sizeY){
+    for(int i = 0; i < sizeX; ++i){
+        for(int j = 0; j < sizeY; ++j){
+            res[i][j] = 0;
+            for(int k = 0; k < sizeRange; ++k){
+                res[i][j] += matrix[i][k] * input[k][j];
+            }
+        }
+    }
+}
+
 
 using namespace std;
 extern float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
 float randomF(){
-    return (rand()%100000)/100.0;
+    return 1;//(rand()%100000)/100.0;
 }
 
 int main(int argc, char **argv){
@@ -64,13 +77,49 @@ int main(int argc, char **argv){
         res[i] = new int[sizeY];
     }
 
-    HANDLE_ERROR(cudaEventRecord(start));
-    float kernel_time = gemm(matrix, input, res, sizeX, sizeRange, sizeY);
-    HANDLE_ERROR(cudaEventRecord(stop));
-    HANDLE_ERROR(cudaEventSynchronize(stop));
-    float milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-    cout << milliseconds << " " << kernel_time << "\n";
+    dataType **ans = new dataType*[sizeX];
+    for(int i = 0; i < sizeX; ++i){
+        ans[i] = new int[sizeY];
+    }
+    
+    gemm(matrix, input, res, sizeX, sizeRange, sizeY);
+    MM_Correct(matrix, input, ans, sizeX, sizeRange, sizeY);
+
+    ofstream writeFile("res.txt");
+    for(int i = 0; i < sizeX; ++i){
+        for(int j = 0; j < sizeRange; ++j){
+            writeFile << matrix[i][j] << "\t";
+        }
+        writeFile << "\n";
+    }
+    writeFile << "\n";
+    writeFile << "\n";
+
+    for(int i = 0; i < sizeRange; ++i){
+        for(int j = 0; j < sizeY; ++j){
+            writeFile << input[i][j] << "\t";
+        }
+        writeFile << "\n";
+    }
+    writeFile << "\n";
+    writeFile << "\n";
+
+    for(int i = 0; i < sizeX; ++i){
+        for(int j = 0; j < sizeY; ++j){
+            writeFile << res[i][j] << "\t";
+        }
+        writeFile << "\n";
+    }
+    writeFile << "\n";
+    writeFile << "\n";
+
+    for(int i = 0; i < sizeX; ++i){
+        for(int j = 0; j < sizeY; ++j){
+            writeFile << ans[i][j] << "\t";
+        }
+        writeFile << "\n";
+    }
+    writeFile.close();
 
     for(int i = 0; i < sizeX; ++i)
         delete[] matrix[i];

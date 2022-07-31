@@ -1,12 +1,13 @@
 #include <iostream>
 #include <time.h>
-#include "matConst.hpp"
+#include "common.hpp"
 
-void MM_Correct(dataType** matrix, dataType** input, dataType** res){
-    for(int i = 0; i < rowNumC; ++i){
-        for(int j = 0; j < colNumC; ++j){
+void MM_Correct(dataType** matrix, dataType** input, dataType** res,
+    const size_t sizeX, const size_t sizeRange, const size_t sizeY){
+    for(int i = 0; i < sizeX; ++i){
+        for(int j = 0; j < sizeY; ++j){
             res[i][j] = 0;
-            for(int k = 0; k < colNumA; ++k){
+            for(int k = 0; k < sizeRange; ++k){
                 res[i][j] += matrix[i][k] * input[k][j];
             }
         }
@@ -14,7 +15,8 @@ void MM_Correct(dataType** matrix, dataType** input, dataType** res){
 }
 
 using namespace std;
-extern void MM_Kernel(dataType** matrix, dataType** input, dataType** res);
+extern float gemm(dataType** matrix, dataType** input, dataType** res,
+    const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
 float randomF(){
     return (rand()%100000)/100.0;
@@ -23,50 +25,78 @@ float randomF(){
 int main(int argc, char **argv){
     srand(time(NULL));
 
-    dataType **matrix = new dataType*[rowNumA];
-    for(int i = 0; i < rowNumA; ++i){
-        matrix[i] = new int[colNumA];
-        for(int j = 0; j < colNumA; ++j){
+    if(argc != 4)
+        return 0;
+
+    size_t sizeX, sizeRange, sizeY;
+    sizeX = 0;
+    sizeY = 0;
+    sizeRange = 0;
+    
+    char* v = argv[1];
+    while(*v != '\0'){
+        sizeX *= 10;
+        sizeX += *v - '0';
+        ++v;
+    }
+    
+    v = argv[2];
+    while(*v != '\0'){
+        sizeRange *= 10;
+        sizeRange += *v - '0';
+        ++v;
+    }
+
+    v = argv[3];
+    while(*v != '\0'){
+        sizeY *= 10;
+        sizeY += *v - '0';
+        ++v;
+    }
+
+    dataType **matrix = new dataType*[sizeX];
+    for(int i = 0; i < sizeX; ++i){
+        matrix[i] = new int[sizeRange];
+        for(int j = 0; j < sizeRange; ++j){
             matrix[i][j] = randomF();
         }
     }
     
-    dataType **input = new dataType*[rowNumB];
-    for(int i = 0; i < rowNumB; ++i){
-        input[i] = new int[colNumB];
-        for(int j = 0; j < colNumB; ++j){
+    dataType **input = new dataType*[sizeRange];
+    for(int i = 0; i < sizeRange; ++i){
+        input[i] = new int[sizeY];
+        for(int j = 0; j < sizeY; ++j){
             input[i][j] = randomF();
         }
     }
     
-    dataType **res1 = new dataType*[rowNumC];
-    for(int i = 0; i < rowNumC; ++i){
-        res1[i] = new int[colNumC];
+    dataType **res1 = new dataType*[sizeX];
+    for(int i = 0; i < sizeX; ++i){
+        res1[i] = new int[sizeY];
     }
     
-    dataType **res2 = new dataType*[rowNumC];
-    for(int i = 0; i < rowNumC; ++i){
-        res2[i] = new int[colNumC];
+    dataType **res2 = new dataType*[sizeX];
+    for(int i = 0; i < sizeX; ++i){
+        res2[i] = new int[sizeY];
     }
 
-    MM_Correct(matrix, input, res2);
-    MM_Kernel(matrix, input, res1);
-
-    for(int i = 0; i < rowNumC; ++i){
-        for(int j = 0; j < colNumC; ++j){
-            int delta = abs(res1[i][j] - res2[i][j]);
+    MM_Correct(matrix, input, res1, sizeX, sizeRange, sizeY);
+    gemm(matrix, input, res2, sizeX, sizeRange, sizeY);
+    for(int i = 0; i < sizeX; ++i){
+        for(int j = 0; j < sizeY; ++j){
+            dataType delta = abs(res1[i][j] - res2[i][j]);
             if(delta != 0){
-                cout << "Error\n" << res1[i][j] << "\n" << res2[i][j] << "\n" << delta << "\n";
+                cout << "Error\n" << i << "," << j << "\n" <<res1[i][j] << " - " << res2[i][j] << " = " << delta << "\n";
                 return 0;
             }
         }
     }
 
-    for(int i = 0; i < rowNumA; ++i)
+    for(int i = 0; i < sizeX; ++i)
         delete[] matrix[i];
-    for(int i = 0; i < rowNumB; ++i)
+    for(int i = 0; i < sizeRange; ++i)
         delete[] input[i];
-    for(int i = 0; i < rowNumC; ++i){
+    for(int i = 0; i < sizeX; ++i){
         delete[] res1[i];
         delete[] res2[i];
     }

@@ -1,14 +1,31 @@
-#include "matConst.hpp"
+#include "GPUdebug.hpp"
+#include "common.hpp"
 
 using namespace std;
 
-void MM_Kernel(dataType** matrix, dataType** input, dataType** res){
-    for(int i = 0; i < rowNumC; ++i){
-        for(int j = 0; j < colNumC; ++j){
+float gemm(dataType** matrix, dataType** input, dataType** res,
+    const size_t rowSize, const size_t rangeSize, const size_t colSize){
+    const size_t rowNumMat = rowSize;
+    const size_t rowNumInp = rangeSize;
+    const size_t rowNumRes = rowSize;
+    const size_t colNumMat = rangeSize;
+    const size_t colNumInp = colSize;
+    const size_t colNumRes = colSize;
+    cudaEvent_t start, stop;
+    float milliseconds = 0;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    HANDLE_ERROR(cudaEventRecord(start));
+    for(int i = 0; i < rowNumRes; ++i){
+        for(int j = 0; j < colNumRes; ++j){
             res[i][j] = 0;
-            for(int k = 0; k < colNumA; ++k){
+            for(int k = 0; k < colNumMat; ++k){
                 res[i][j] += matrix[i][k] * input[k][j];
             }
         }
     }
+    HANDLE_ERROR(cudaEventRecord(stop));
+    HANDLE_ERROR(cudaEventSynchronize(stop));
+    cudaEventElapsedTime(&milliseconds, start, stop);
+    return milliseconds;
 }

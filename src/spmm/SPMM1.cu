@@ -8,28 +8,28 @@ using namespace std;
 
 
 //A(Sparse) B = C
-constexpr int rowNumA = 2048;
-constexpr int colNumA = 1024;
-constexpr int rowNumB = colNumA;
-constexpr int colNumB = 2048;
-constexpr int rowNumC = rowNumA;
-constexpr int colNumC = colNumB;
+constexpr int sizeX = 2048;
+constexpr int colNumMat = 1024;
+constexpr int sizeRange = colNumMat;
+constexpr int colNumInp = 2048;
+constexpr int rowNumRes = sizeX;
+constexpr int colNumRes = colNumInp;
 constexpr int maxEdge = 100;
 
 void SPMM_CPU(int* rowPtr, int* colIdx, int* value, int** input, int** res){
-    for(int i = 0; i < rowNumA; ++i){
+    for(int i = 0; i < sizeX; ++i){
         for(int j = rowPtr[i]; j < rowPtr[i + 1]; ++j){
-            for(int k = 0; k < colNumB; ++k){
+            for(int k = 0; k < colNumInp; ++k){
                 res[i][k] += value[j] * input[colIdx[j]][k];
             }
         }
     }
 }
 
-__global__ void SPMM_Kernel_kernel(int* rowPtr, int* colIdx, int* value, int** input, int** res){
-    for(int i = 0; i < rowNumA; ++i){
+__global__ void SPMM_Kernel(int* rowPtr, int* colIdx, int* value, int** input, int** res){
+    for(int i = 0; i < sizeX; ++i){
         for(int j = rowPtr[i]; j < rowPtr[i + 1]; ++j){
-            for(int k = 0; k < colNumB; ++k){
+            for(int k = 0; k < colNumInp; ++k){
                 res[i][k] += value[j] * input[colIdx[j]][k];
             }
         }
@@ -43,22 +43,22 @@ void SPMM_Kernel(int* rowPtr, int* colIdx, int* value, int** input, int** res){
     int* input_GPU;
     int* res_GPU;
     
-    int numNZ = rowPtr[rowNumA];
+    int numNZ = rowPtr[sizeX];
 
-    HANDLE_ERROR(cudaMalloc(&rowPtr_GPU, sizeof(dataType) * (rowNumA + 1)));
+    HANDLE_ERROR(cudaMalloc(&rowPtr_GPU, sizeof(dataType) * (sizeX + 1)));
     HANDLE_ERROR(cudaMalloc(&colIdx_GPU, sizeof(dataType) * numNZ));
     HANDLE_ERROR(cudaMalloc(&value_GPU, sizeof(dataType) * numNZ));
-    HANDLE_ERROR(cudaMalloc(&input_GPU, sizeof(dataType) * rowNumA * rowNumA));
-    HANDLE_ERROR(cudaMalloc(&res_GPU, sizeof(dataType) * rowNumA * rowNumA));
+    HANDLE_ERROR(cudaMalloc(&input_GPU, sizeof(dataType) * sizeX * sizeX));
+    HANDLE_ERROR(cudaMalloc(&res_GPU, sizeof(dataType) * sizeX * sizeX));
 
-    HANDLE_ERROR(cudaMemcpy(rowPtr_GPU, rowPtr, sizeof(dataType) * (rowNumA + 1), cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(rowPtr_GPU, rowPtr, sizeof(dataType) * (sizeX + 1), cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaMemcpy(colIdx_GPU, colIdx, sizeof(dataType) * numNZ, cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaMemcpy(value_GPU, value, sizeof(dataType) * numNZ, cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(input_GPU, input, sizeof(dataType) * rowNumA * rowNumA, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(input_GPU, input, sizeof(dataType) * sizeX * sizeX, cudaMemcpyDeviceToHost));
 
     
     
-    HANDLE_ERROR(cudaMemcpy(res, res_GPU, sizeof(dataType) * rowNumA * rowNumA, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(res, res_GPU, sizeof(dataType) * sizeX * sizeX, cudaMemcpyHostToDevice));
     
     HANDLE_ERROR(cudaFree(rowPtr_GPU));
     HANDLE_ERROR(cudaFree(colIdx_GPU));
@@ -75,26 +75,26 @@ int randomF(){
 int main(int argc, char **argv){
     srand(time(NULL));
     int pre = 0;
-    int* rowPtr = new int[rowNumA + 1];
+    int* rowPtr = new int[sizeX + 1];
     {
-        for(int i = 0; i < rowNumA; ++i){
+        for(int i = 0; i < sizeX; ++i){
             int range = rand()%(maxEdge - 1) + 1;
             rowPtr[i] = pre;
             pre += range;
         }
-        rowPtr[rowNumA] = pre;
+        rowPtr[sizeX] = pre;
     }
     int dataNum = pre;
     int* colIdx = new int[dataNum];
     int* value = new int[dataNum];
     
-    for(int i = 0; i < rowNumA; ++i){
+    for(int i = 0; i < sizeX; ++i){
         int colNum = rowPtr[i + 1] - rowPtr[i];
         std::set<int> colIdxSet;
         for(int j = 0; j < colNum; ++j){
             int newColIdx;
             do{
-                newColIdx = rand() % colNumA;
+                newColIdx = rand() % colNumMat;
             }while(colIdxSet.find(newColIdx) != colIdxSet.end());
             colIdxSet.insert(newColIdx);
         }
@@ -105,18 +105,18 @@ int main(int argc, char **argv){
     }
 
     
-    int **input = new int*[rowNumB];
-    for(int i = 0; i < rowNumB; ++i){
-        input[i] = new int[colNumB];
-        for(int j = 0; j < colNumB; ++j){
+    int **input = new int*[sizeRange];
+    for(int i = 0; i < sizeRange; ++i){
+        input[i] = new int[colNumInp];
+        for(int j = 0; j < colNumInp; ++j){
             input[i][j] = randomF();
         }
     }
     
-    int **res = new int*[rowNumC];
-    for(int i = 0; i < rowNumC; ++i){
-        res[i] = new int[colNumC];
-        for(int j = 0; j < colNumC; ++j){
+    int **res = new int*[rowNumRes];
+    for(int i = 0; i < rowNumRes; ++i){
+        res[i] = new int[colNumRes];
+        for(int j = 0; j < colNumRes; ++j){
             res[i][j] = 0;
         }
     }
@@ -124,7 +124,7 @@ int main(int argc, char **argv){
 
     SPMM_CPU(rowPtr, colIdx, value, input, res);
 
-    for(int i = 0; i < rowNumB; ++i){
+    for(int i = 0; i < sizeRange; ++i){
         delete[] input[i];
     }
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv){
     delete[] colIdx;
     delete[] value;
 
-    for(int i = 0; i < rowNumC; ++i){
+    for(int i = 0; i < rowNumRes; ++i){
         delete[] res[i];
     }
     delete[] res;
