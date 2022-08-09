@@ -18,7 +18,8 @@ add_library(MML7  src/dmm/MM7.cu) # res major + blocked + shared + local output 
 add_library(MML8  src/dmm/MM8.cu) # res major + blocked + shared + local output + coealocal 2
 add_library(MML9  src/dmm/MM9.cu) # res major + blocked + shared + local output + coealocal 3
 add_library(MML10 src/dmm/MM10.cu) # Strassen's
-add_library(MML11 src/dmm/MM11.cu) # Winograd's
+add_library(MML11 src/dmm/MM11.cu) # Data transfer optimized Strassen's
+add_library(MML12 src/dmm/MM12.cu) # Winograd's
 
 add_executable(MMP1  src/tests/performance.cu)
 target_link_libraries(MMP1 MML1)
@@ -42,6 +43,8 @@ add_executable(MMP10 src/tests/performance.cu)
 target_link_libraries(MMP10 MML10)
 add_executable(MMP11 src/tests/performance.cu)
 target_link_libraries(MMP11 MML11)
+add_executable(MMP12 src/tests/performance.cu)
+target_link_libraries(MMP12 MML12)
 
 add_executable(MMC1  src/tests/correctness.cu)
 target_link_libraries(MMC1 MML1)
@@ -65,6 +68,8 @@ add_executable(MMC10 src/tests/correctness.cu)
 target_link_libraries(MMC10 MML10)
 add_executable(MMC11 src/tests/correctness.cu)
 target_link_libraries(MMC11 MML11)
+add_executable(MMC12 src/tests/correctness.cu)
+target_link_libraries(MMC12 MML12)
 
 add_executable(MMCGPU1  src/tests/correctnessGPU.cu)
 target_link_libraries(MMCGPU1 MML1)
@@ -88,6 +93,8 @@ add_executable(MMCGPU10 src/tests/correctnessGPU.cu)
 target_link_libraries(MMCGPU10 MML10)
 add_executable(MMCGPU11 src/tests/correctnessGPU.cu)
 target_link_libraries(MMCGPU11 MML11)
+add_executable(MMCGPU12 src/tests/correctnessGPU.cu)
+target_link_libraries(MMCGPU12 MML12)
 
 add_executable(get src/tests/get.cu)
-target_link_libraries(get MML10)
+target_link_libraries(get MML12)

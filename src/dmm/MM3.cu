@@ -4,15 +4,15 @@
 using namespace std;
 
 __global__ void MM_Kernel(dataType* matrix, dataType* input, dataType* res,
-        size_t sizeX, size_t sizeRange, size_t sizeY){
+        size_t sizeX, size_t sizeRange, size_t sizeY, size_t resUnit, size_t matUnit, size_t inputUnit){
     size_t global = threadIdx.x + blockIdx.x * blockDim.x;
     size_t i = global/sizeY;
     size_t j = global%sizeY;
-    global = i * sizeY + j;
+    global = i * resUnit + j;
     if(global > sizeX * sizeY) return;
     dataType acc = 0;
     for(int k = 0; k < sizeRange; ++k){
-        acc +=  matrix[i * sizeRange + k] * input[k * sizeY + j];
+        acc +=  matrix[i * matUnit + k] * input[k * inputUnit + j];
     }
     res[global] = acc;
 }
@@ -41,13 +41,13 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     int work = rowNumRes * colNumRes;
     cudaEvent_t start, stop;
     float milliseconds = 0;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    HANDLE_ERROR(cudaEventCreate(&start));
+    HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start));
-    MM_Kernel<<<(work + maxThreadSize - 1)/maxThreadSize, work > maxThreadSize? maxThreadSize : work >>>(matrix_GPU, input_GPU, res_GPU, rowSize, rangeSize, colSize);
+    MM_Kernel<<<(work + MAXTHREADSIZE - 1)/MAXTHREADSIZE, work > MAXTHREADSIZE? MAXTHREADSIZE : work >>>(matrix_GPU, input_GPU, res_GPU, rowSize, rangeSize, colSize, colSize, rangeSize, colSize);
     HANDLE_ERROR(cudaEventRecord(stop));
     HANDLE_ERROR(cudaEventSynchronize(stop));
-    cudaEventElapsedTime(&milliseconds, start, stop);
+    HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
 
     for(int i = 0; i < rowNumRes; ++i){
         HANDLE_ERROR(cudaMemcpy(res[i], res_GPU + colNumRes * i, sizeof(dataType)*colNumRes, cudaMemcpyDeviceToHost));

@@ -20,14 +20,17 @@ using namespace std;
 extern float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
+int preseed[] = {0,-1,-1,0,0,1,0,1,-1,1,1,-1,1,1,1,1,1,-1,0,1,0,1,-1,1,0,-1,1,0,0,-1,0,-1,0,1,1,1,1,0,1,1,0,0,-1,-1,1,-1,1,1,-1,-1,1,1,0,-1,1,1,0,1,-1,-1,-1,1,0,0,0,0,0,-1,1,0,-1,-1,-1,-1,0,1,0,1,1,1,1,1,1,0,-1,-1,-1,0,1,0,0,0,0,-1,1,1,0,0};
+int idx = 0;
 float randomF(){
-    return 1;//(rand()%100000)/100.0;
+    return preseed[idx++];
+    return 1;
+    return (rand()%3 - 1);
 }
-
 int main(int argc, char **argv){
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    HANDLE_ERROR(cudaEventCreate(&start));
+    HANDLE_ERROR(cudaEventCreate(&stop));
     srand(time(NULL));
 
     size_t sizeX, sizeRange, sizeY;
@@ -81,6 +84,7 @@ int main(int argc, char **argv){
     for(int i = 0; i < sizeX; ++i){
         ans[i] = new int[sizeY];
     }
+
     
     gemm(matrix, input, res, sizeX, sizeRange, sizeY);
     MM_Correct(matrix, input, ans, sizeX, sizeRange, sizeY);

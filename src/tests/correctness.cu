@@ -18,8 +18,8 @@ using namespace std;
 extern float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
-float randomF(){
-    return (rand()%100000)/100.0;
+dataType randomF(){
+    return (rand()%3) - 1;
 }
 
 int main(int argc, char **argv){

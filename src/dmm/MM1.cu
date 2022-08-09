@@ -13,8 +13,8 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t colNumRes = colSize;
     cudaEvent_t start, stop;
     float milliseconds = 0;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    HANDLE_ERROR(cudaEventCreate(&start));
+    HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start));
     for(int i = 0; i < rowNumRes; ++i){
         for(int j = 0; j < colNumRes; ++j){
@@ -26,6 +26,6 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     }
     HANDLE_ERROR(cudaEventRecord(stop));
     HANDLE_ERROR(cudaEventSynchronize(stop));
-    cudaEventElapsedTime(&milliseconds, start, stop);
+    HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
     return milliseconds;
 }

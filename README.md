@@ -17,8 +17,9 @@ This repository consists of many matrix multiplication algorithms.
 8. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 2
 9. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 3
 10. Strassen's algorithm
-11. (WIP) Winograd's algorithm
-12. (WIP) Cublas
+11. Memory usage optimized Strassen's algorithm
+12. Winograd's algorithm
+13. (WIP) Cublas
 
 #### Experiment setup ####
 

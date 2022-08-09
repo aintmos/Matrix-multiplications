@@ -41,13 +41,13 @@ float MM_Correct(dataType** matrix, dataType** input, dataType** res,
     int work = rowNumRes * colNumRes;
     cudaEvent_t start, stop;
     float milliseconds = 0;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    HANDLE_ERROR(cudaEventCreate(&start));
+    HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start));
-    MM_Kernel__correct<<<(work + maxThreadSize - 1)/maxThreadSize, work > maxThreadSize? maxThreadSize : work >>>(matrix_GPU, input_GPU, res_GPU, rowSize, rangeSize, colSize);
+    MM_Kernel__correct<<<(work + MAXTHREADSIZE - 1)/MAXTHREADSIZE, work > MAXTHREADSIZE? MAXTHREADSIZE : work >>>(matrix_GPU, input_GPU, res_GPU, rowSize, rangeSize, colSize);
     HANDLE_ERROR(cudaEventRecord(stop));
     HANDLE_ERROR(cudaEventSynchronize(stop));
-    cudaEventElapsedTime(&milliseconds, start, stop);
+    HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
 
     for(int i = 0; i < rowNumRes; ++i){
         HANDLE_ERROR(cudaMemcpy(res[i], res_GPU + colNumRes * i, sizeof(dataType) * colNumRes, cudaMemcpyDeviceToHost));
@@ -61,8 +61,8 @@ float MM_Correct(dataType** matrix, dataType** input, dataType** res,
 extern float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
-float randomF(){
-    return (rand()%100000)/100.0;
+dataType randomF(){
+    return (rand()%3) - 1;
 }
 
 int main(int argc, char **argv){

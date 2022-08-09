@@ -7,14 +7,14 @@ using namespace std;
 extern float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
-float randomF(){
-    return (rand()%100000)/100.0;
+dataType randomF(){
+    return (rand()%3) - 1;
 }
 
 int main(int argc, char **argv){
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    HANDLE_ERROR(cudaEventCreate(&start));
+    HANDLE_ERROR(cudaEventCreate(&stop));
     srand(time(NULL));
 
     size_t sizeX, sizeRange, sizeY;
@@ -69,7 +69,7 @@ int main(int argc, char **argv){
     HANDLE_ERROR(cudaEventRecord(stop));
     HANDLE_ERROR(cudaEventSynchronize(stop));
     float milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
+    HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
     cout << milliseconds << " " << kernel_time << "\n";
 
     for(int i = 0; i < sizeX; ++i)
