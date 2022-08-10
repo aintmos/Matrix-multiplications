@@ -11,15 +11,14 @@ This repository consists of many matrix multiplication algorithms.
 2. Naive GPU implemented dense-matrix multiplication
 3. Naive GPU implemented dense-matrix multiplication + Registered result 
 4. X,Y-coordinated GPU implementated dense-matrix multiplication + Registered result
-5. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result
-6. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory
-7. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 1
-8. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 2
-9. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 3
-10. Strassen's algorithm
-11. Memory usage optimized Strassen's algorithm
-12. Winograd's algorithm
-13. (WIP) Cublas
+5. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory
+6. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 1
+7. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 2
+8. X,Y-coordinated GPU implementated blocked dense-matrix multiplication + Registered result + Utilize shared memory + Shared memory indexing method 3
+9. Strassen's algorithm
+10. Memory usage optimized Strassen's algorithm
+11. Winograd's algorithm
+12. (WIP) Cublas
 
 #### Experiment setup ####
 
@@ -29,34 +28,53 @@ This repository consists of many matrix multiplication algorithms.
 
 #### Experiment result ####
 
-| Index |Test case| Algorithm 1(msecs) | Algorithm 2(msecs) | Algorithm 3(msecs) | Algorithm 4(msecs) | Algorithm 5(msecs) | 
-| --- | --- | ----------- | ----------- | ----------- | ----------- | ----------- |
-| 1 | (128 x 128) x <br>(128 x 128) =><br> (128 x 128) | 7.72624 | 1.52 | 1.49 | 1.78 | 1.67 |
-| 2 | (1024 x 1024) x <br>(1024 x 1024) =><br> (1024 x 1024) | 4,978.36 | 26.07 | 17.88 | 68.35 | 67.70 | 
-| 3 | (4096 x 4096) x <br>(4096 x 4096) =><br> (4096 x 4096) | (Predicted) 253K | 1208.86 | 919.98 | 2533.22 | 2533.13 |
-| 4 | (16000 x 16000) x <br>(16000 x 16000) =><br> (16000 x 16000) | (Predicted) 15M | 86K| 71.4K | 151.55K | 151.41K | 
-| 5 | (4096 x 10) x <br>(10 x 4096) =><br> (4096 x 4096) | 618 | (Predicted) 61.89 | 59.82 | 61.20 | 61.35 | 
-| 6 | (16000 x 100) x <br>(100 x 16000) =><br> (16000 x 16000) | (Predicted) 94K |  911.15 | 787.60 | 1016.16 | 596.63 | 
-| 7 | (100 x 16000) x <br>(16000 x 16000) =><br> (100 x 16000) | (Predicted) 94K | 745.62 | 643.88 | 1190.49 | 1413.61 |
-| 8 | (16000 x 16000) x <br>(16000 x 100) =><br> (16000 x 100) | (Predicted) 94K | 577.03 | 417.98 | 1265.97 | 1558.14 |
-| 9 | (100 x 100) x <br>(100 x 32000) =><br> (100 x 32000) | (Predicted) 1178 | 15.11 | 14.29 | 17.84 | 10.00 |
-| 10 | (100 x 32000) x <br>(32000 x 100) =><br> (100 x 100) | (Predicted) 1178 | 110.39 | 99.94 | 125.76 | 149.63 |
-| 11 | (32000 x 100) x <br>(100 x 100) =><br> (32000 x 100) | (Predicted) 1178 | 243.78 | 247.62 | 254.87 | 242.43 |
+##### Test case #####
+| Index | Matrix size | Input size | Result size | Remark |
+| ----- | ----------- | ---------- | ----------- | ------ |
+| 1 | 128 x 128 | 128 x 128 | 128 x 128 | Rectangular matrix/input 1 |
+| 2 | 1024 x 1024 | 1024 x 1024 | 1024 x 1024 | Rectangular matrix/input 1 |
+| 3 | 4096 x 4096 | 4096 x 4096 | 4096 x 4096 | Rectangular matrix/input 2 |
+| 4 | 16000 x 16000 | 16000 x 16000 | 16000 x 16000 | Rectangular matrix/input 3 |
+| 5 | 16383 x 16383 | 16383 x 16383 | 16383 x 16383 | Rectangular matrix/input 4 (Allways odd size with recursion) |
+| 6 | 4096 x 10 | 10 x 4096 | 4096 x 4096 | Small square matrix/input |
+| 7 | 100 x 16000 | 16000 x 16000 | 100 x 16000 | Square matrix|
+| 8 | 16000 x 100 | 100 x 16000 | 16000 x 16000 | Square matrix/input |
+| 9 | 16000 x 16000 | 16000 x 100 | 16000 x 100 | Square input |
+| 10 | 100 x 100 | 100 x 32000 | 100 x 32000 | Form 1 |
+| 11 | 100 x 32000 | 32000 x 100 | 100 x 100 | Form 2 |
+| 12 | 32000 x 100 | 100 x 100 | 32000 x 100 | Form 3 |
 
+##### Test results #####
+| Index | MM1(msec) | MM2(msec) | MM3(msec) | MM4(msec) | MM5(msec) | MM6(msec) |
+| ----- | --------- | --------- | --------- | --------- | --------- | --------- |
+| 0 | 7.7 | 1.61 | 1.66 | 1.71 | 1.73 | 1.72 | 
+| 1 | 9.07K | 26.27 | 18.27 | 67.4 | 74.37 | 68.98 | 
+| 2 | 252.31K | 937.43 | 804.42 | 2.55K | 2.83K | 2.76K | 
+| 3 | 15.04M | 85.92K | 71.55K | 154.53K | 165.65K | 161.37K | 
+| 4 | 16.14M | 97.72K | 98.13K | 85.23K | 171.26K | 166.65K | 
+| 5 | 615.99 | 60.36 | 58.82 | 85.23K | 67.84 | 67.78 | 
+| 6 | 93.99K | 741.45 | 644.77 | 85.23K | 1.55K | 1.5K | 
+| 7 | 93.99K | 877.57 | 782.96 | 1.02K | 1.64K | 1.62K | 
+| 8 | 93.99K | 574.45 | 428.97 | 1.3K | 1.64K | 1.61K | 
+| 9 | 1.17K | 14.69 | 14.18 | 15.37 | 26.98 | 26.44 | 
+| 10 | 1.17K | 108.27 | 100.6 | 15.37 | 136.01 | 141.98 | 
+| 11 | 1.17K | 245.13 | 243.7 | 249.53 | 265.61 | 264.71 |
 
-| Index | Test case | Algorithm 6(msecs) | Algorithm 7(msecs) | Algorithm 8(msecs) | Algorithm 9(msecs) | Algorithm 10(msecs) |
-| --- | --- | ----------- | ----------- | ----------- | ----------- | ----------- | 
-| 1 | (128 x 128) x <br>(128 x 128) =><br> (128 x 128) | 1.60 | 1.57 | 1.58 | 1.56 | 1.50 |
-| 2 | (1024 x 1024) x <br>(1024 x 1024) =><br> (1024 x 1024) | 35.16 | 32.35 | 21.92 | 19.57 | 18.20 |
-| 3 | (4096 x 4096) x <br>(4096 x 4096) =><br> (4096 x 4096) | 1058.58 | 952.16 | 488.61 | 379.03 | 398.82 |
-| 4 | (16000 x 16000) x <br>(16000 x 16000) =><br> (16000 x 16000) | 59.84K | 52.840K | 24.951K | 18.331K | 11.931K |
-| 5 | (4096 x 10) x <br>(10 x 4096) =><br> (4096 x 4096) | 63.69 | 63.83 | 64.54 | 63.16 | 60.96 | 
-| 6 | (16000 x 100) x <br>(100 x 16000) =><br> (16000 x 16000) | 951.94 | 909.46 | 737.04 | 696.80 | 863.41 |
-| 7 | (100 x 16000) x <br>(16000 x 16000) =><br> (100 x 16000) | 691.65 | 645.89 | 417.54 | 356.97 | 636.31 |
-| 8 | (16000 x 16000) x <br>(16000 x 100) =><br> (16000 x 100) | 768.10 | 738.41 | 514.09 | 452.06 | 536.16 |
-| 9 | (100 x 100) x <br>(100 x 32000) =><br> (100 x 32000) | 17.61 | 16.86 | 13.76 | 12.48 | 14.29 |
-| 10 | (100 x 32000) x <br>(32000 x 100) =><br> (100 x 100) | 113.57 | 112.62 | 103.34 | 102.57 | 99.87 |
-| 11 | (32000 x 100) x <br>(100 x 100) =><br> (32000 x 100) | 250.83 | 248.60 | 243.25 | 244.34 | 244.23 |
+| Index | MM7(msec) | MM8(msec) | MM9(msec) | MM10(msec) | MM11(msec) |
+| ----- | --------- | --------- | --------- | ---------- | ---------- |
+| 0 | 1.55 | 1.54 | 1.52 | 1.52 | 1.61 | 
+| 1 | 22.15 | 20.48 | 18.11 | 18.06 | 18.21 | 
+| 2 | 492.91 | 422.09 | 320.62 | 315.96 | 305.43 | 
+| 3 | 24.83K | 20.59K | 12.04K | 11.92K | 11.38K | 
+| 4 | 21.0K | 16.14K | 13.87K | 13.57K | 12.89K | 
+| 5 | 59.54 | 60.92 | 57.83 | 58.55 | 60.08 | 
+| 6 | 430.0 | 392.0 | 633.08 | 621.75 | 596.2 | 
+| 7 | 768.82 | 739.29 | 781.01 | 780.77 | 772.6 | 
+| 8 | 513.0 | 484.94 | 522.84 | 509.67 | 478.36 | 
+| 9 | 12.23 | 11.78 | 14.11 | 14.21 | 14.2 | 
+| 10 | 103.53 | 102.3 | 101.97 | 102.28 | 102.05 | 
+| 11 | 244.63 | 243.32 | 244.74 | 245.57 | 245.21 | 
 
-#### Ranking ####
-![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/ExperimentResult.png?raw=true)
+#### Charts ####
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Result.png?raw=true)
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Rank.png?raw=true)
