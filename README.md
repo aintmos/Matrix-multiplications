@@ -77,4 +77,5 @@ This repository consists of many matrix multiplication algorithms.
 
 #### Charts ####
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Result.png?raw=true)
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Result_drop_some.png?raw=true)
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Rank.png?raw=true)
