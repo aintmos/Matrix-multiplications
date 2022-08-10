@@ -18,15 +18,15 @@ __global__ void MM_Kernel(dataType* matrix, dataType* input, dataType* res,
         size_t localInputRowIdx = li + subBlockSize * k;
         size_t localInputColIdx = globalColIdx;
         if(localMatRowIdx < sizeX && localMatColIdx < sizeRange) {
-            subMatrix[li][lj] = matrix[localMatRowIdx * matUnit + localMatColIdx];
+            subMatrix[lj][li] = matrix[localMatRowIdx * matUnit + localMatColIdx];
         }
         if(localInputRowIdx < sizeRange && localInputColIdx < sizeY){
-            subInput[lj][li]  = input [localInputRowIdx * inputUnit + localInputColIdx];
+            subInput[li][lj]  = input [localInputRowIdx * inputUnit + localInputColIdx];
         }
         __syncthreads();
         for(int lk = 0; lk < subBlockSize; ++lk){
             if(subBlockSize * k + lk < sizeRange){
-                acc += subMatrix[li][lk] * subInput[lj][lk];
+                acc += subMatrix[lk][li] * subInput[lk][lj];
             }
         }
         __syncthreads();

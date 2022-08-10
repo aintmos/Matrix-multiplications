@@ -23,8 +23,8 @@ extern float gemm(dataType** matrix, dataType** input, dataType** res,
 int preseed[] = {0,-1,-1,0,0,1,0,1,-1,1,1,-1,1,1,1,1,1,-1,0,1,0,1,-1,1,0,-1,1,0,0,-1,0,-1,0,1,1,1,1,0,1,1,0,0,-1,-1,1,-1,1,1,-1,-1,1,1,0,-1,1,1,0,1,-1,-1,-1,1,0,0,0,0,0,-1,1,0,-1,-1,-1,-1,0,1,0,1,1,1,1,1,1,0,-1,-1,-1,0,1,0,0,0,0,-1,1,1,0,0};
 int idx = 0;
 float randomF(){
-    return preseed[idx++];
     return 1;
+    return preseed[idx++];
     return (rand()%3 - 1);
 }
 int main(int argc, char **argv){

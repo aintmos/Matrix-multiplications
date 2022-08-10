@@ -217,7 +217,8 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
         setMat( auxRes,  auxResUnit, 
                 res_22, resUnit,
                 rowNumAuxresLeft, colNumAuxresLeft, false, false, true);
-                
+
+        
         ////////////////////////////////////////////////     
         // M2 applied
         // (mat_21 + mat_22)(inp_11)
@@ -234,12 +235,8 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
                 auxMat, auxMatUnit,
                 rowNumAuxmatLeft, colNumAuxmatLeft, true);
 
-        setMat( inp_11,  inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinp, colNumAuxinp, false, false, true);
-
-        gemm( auxMat, auxInp, auxRes,
-              auxMatUnit, auxInpUnit, auxResUnit,
+        gemm( auxMat, inp_11, auxRes,
+              auxMatUnit, inpUnit, auxResUnit,
               auxAuxMat, auxAuxInp, auxAuxRes, 
               colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
               auxSizeX, auxSizeRange, auxSizeY);
@@ -257,11 +254,7 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
         // (mat_11)(inp_12 - inp_22)
         // positive: res_12, res_22
         // negative: none
-        ////////////////////////////////////////////////
-
-        setMat( mat_11, matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmat, colNumAuxmat, false, false, true);
+        ///////////////////////////////////////////////
 
         setMat( inp_12,  inpUnit, 
                 auxInp, auxInpUnit,
@@ -272,8 +265,8 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
                 auxInp, auxInpUnit,
                 rowNumAuxinpLeft, colNumAuxinpLeft, false);
 
-        gemm( auxMat, auxInp, auxRes,
-              auxMatUnit, auxInpUnit, auxResUnit,
+        gemm( mat_11, auxInp, auxRes,
+              matUnit, auxInpUnit, auxResUnit,
               auxAuxMat, auxAuxInp, auxAuxRes, 
               colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
               auxSizeX, auxSizeRange, auxSizeY);
@@ -292,11 +285,6 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
         // positive: res_11, res_21
         // negative: none
         ////////////////////////////////////////////////
-        
-        setMat( mat_22, matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmatLeft, colNumAuxmatLeft, 
-                rowNumAuxmatLeft != rowNumAuxmat, colNumAuxmatLeft != colNumAuxmat, true);
 
         setMat( inp_11,  inpUnit, 
                 auxInp, auxInpUnit,
@@ -306,15 +294,15 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
                 auxInp, auxInpUnit,
                 rowNumAuxinpLeft, colNumAuxinp, true);
 
-        gemm( auxMat, auxInp, auxRes,
-              auxMatUnit, auxInpUnit, auxResUnit,
+        gemm( mat_22, auxInp, auxRes,
+              matUnit, auxInpUnit, auxResUnit,
               auxAuxMat, auxAuxInp, auxAuxRes, 
               colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
-              auxSizeX, auxSizeRange, auxSizeY);
+              auxSizeXLeft, auxSizeRangeLeft, auxSizeY);
 
         addMat( auxRes,  auxResUnit, 
                 res_11, resUnit,
-                rowNumAuxres, colNumAuxres, true);
+                rowNumAuxresLeft, colNumAuxres, true);
 
         addMat( auxRes,  auxResUnit, 
                 res_21, resUnit,
@@ -335,16 +323,11 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
                 auxMat, auxMatUnit,
                 rowNumAuxmat, colNumAuxmatLeft, true);
 
-        setMat( inp_22,  inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinpLeft, colNumAuxinpLeft, 
-                rowNumAuxinpLeft != rowNumAuxinp, colNumAuxinpLeft != colNumAuxinp, true);
-
-        gemm( auxMat, auxInp, auxRes,
-              auxMatUnit, auxInpUnit, auxResUnit,
+        gemm( auxMat, inp_22, auxRes,
+              auxMatUnit, inpUnit, auxResUnit,
               auxAuxMat, auxAuxInp, auxAuxRes, 
               colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
-              auxSizeX, auxSizeRange, auxSizeY);
+              auxSizeX, auxSizeRangeLeft, auxSizeYLeft);
 
         addMat( auxRes,  auxResUnit, 
                 res_12, resUnit,
@@ -352,7 +335,7 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
 
         addMat( auxRes,  auxResUnit, 
                 res_11, resUnit,
-                rowNumAuxres, colNumAuxres, false);
+                rowNumAuxres, colNumAuxresLeft, false);
 
         ////////////////////////////////////////////////     
         // M6 applied

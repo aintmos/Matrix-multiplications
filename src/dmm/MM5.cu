@@ -5,21 +5,34 @@ using namespace std;
 
 __global__ void MM_Kernel(dataType* matrix, dataType* input, dataType* res,
         size_t sizeX, size_t sizeRange, size_t sizeY, size_t resUnit, size_t matUnit, size_t inputUnit){
-    size_t i = threadIdx.x + blockIdx.x * blockDim.x;
-    size_t j = threadIdx.y + blockIdx.y * blockDim.y;
-    if(i >= sizeX || j >= sizeY) return;
-
+    size_t li = threadIdx.x; size_t bi = blockIdx.x; size_t bis = blockDim.x;
+    size_t lj = threadIdx.y; size_t bj = blockIdx.y; size_t bjs = blockDim.y;
+    size_t globalRowIdx = li + bi * bis;
+    size_t globalColIdx = lj + bj * bjs;
     dataType acc = 0;
+    __shared__ int subMatrix[subBlockSize][subBlockSize];
+    __shared__ int subInput[subBlockSize][subBlockSize];
     for(int k = 0; k < (sizeRange + subBlockSize - 1)/subBlockSize; ++k){
-        for(int lk = 0; lk < subBlockSize; ++lk){   
-            size_t globalK = subBlockSize * k + lk;
-            if(globalK < sizeRange){
-                acc += matrix[i * matUnit + globalK] * input[globalK * inputUnit + j];
+        size_t localMatRowIdx = globalRowIdx;
+        size_t localMatColIdx = lj + subBlockSize * k;
+        size_t localInputRowIdx = li + subBlockSize * k;
+        size_t localInputColIdx = globalColIdx;
+        if(localMatRowIdx < sizeX && localMatColIdx < sizeRange) {
+            subMatrix[li][lj] = matrix[localMatRowIdx * matUnit + localMatColIdx];
+        }
+        if(localInputRowIdx < sizeRange && localInputColIdx < sizeY){
+            subInput[li][lj]  = input [localInputRowIdx * inputUnit + localInputColIdx];
+        }
+        __syncthreads();
+        for(int lk = 0; lk < subBlockSize; ++lk){
+            if(subBlockSize * k + lk < sizeRange){
+                acc += subMatrix[li][lk] * subInput[lk][lj];
             }
         }
+        __syncthreads();
     }
-    res[i * resUnit + j] = acc;
-    return;
+    if(globalRowIdx < sizeX && globalColIdx < sizeY)
+        res[globalRowIdx * resUnit + globalColIdx] = acc;
 }
 
 float gemm(dataType** matrix, dataType** input, dataType** res,
@@ -34,8 +47,8 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     dataType *input_GPU;
     dataType *res_GPU;
     HANDLE_ERROR(cudaMalloc(&matrix_GPU, sizeof(dataType)*rowNumMat*colNumMat));
-    HANDLE_ERROR(cudaMalloc(&input_GPU,  sizeof(int)*rowNumInp*colNumInp));
-    HANDLE_ERROR(cudaMalloc(&res_GPU,    sizeof(int)*rowNumRes*colNumRes));
+    HANDLE_ERROR(cudaMalloc(&input_GPU, sizeof(dataType)*rowNumInp*colNumInp));
+    HANDLE_ERROR(cudaMalloc(&res_GPU, sizeof(dataType)*rowNumRes*colNumRes));
     for(int i = 0; i < rowNumMat; ++i){
         HANDLE_ERROR(cudaMemcpy(matrix_GPU + colNumMat * i, matrix[i], sizeof(dataType)*colNumMat, cudaMemcpyHostToDevice));
     }

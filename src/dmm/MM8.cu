@@ -21,12 +21,12 @@ __global__ void MM_Kernel(dataType* matrix, dataType* input, dataType* res,
             subMatrix[lj][li] = matrix[localMatRowIdx * matUnit + localMatColIdx];
         }
         if(localInputRowIdx < sizeRange && localInputColIdx < sizeY){
-            subInput[li][lj]  = input [localInputRowIdx * inputUnit + localInputColIdx];
+            subInput[lj][li]  = input [localInputRowIdx * inputUnit + localInputColIdx];
         }
         __syncthreads();
         for(int lk = 0; lk < subBlockSize; ++lk){
             if(subBlockSize * k + lk < sizeRange){
-                acc += subMatrix[lk][li] * subInput[lk][lj];
+                acc += subMatrix[lk][li] * subInput[lj][lk];
             }
         }
         __syncthreads();
@@ -37,6 +37,7 @@ __global__ void MM_Kernel(dataType* matrix, dataType* input, dataType* res,
 
 float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize){
+        
     const size_t rowNumMat = rowSize;
     const size_t rowNumInp = rangeSize;
     const size_t rowNumRes = rowSize;
