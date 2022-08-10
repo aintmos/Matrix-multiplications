@@ -18,7 +18,8 @@ This repository consists of many matrix multiplication algorithms.
 9. Strassen's algorithm
 10. Memory usage optimized Strassen's algorithm
 11. Winograd's algorithm
-12. (WIP) Cublas
+12. Blocked algorithm
+13. (WIP) Cublas
 
 #### Experiment setup ####
 
@@ -52,30 +53,40 @@ This repository consists of many matrix multiplication algorithms.
 | 2 | 252.31K | 937.43 | 804.42 | 2.55K | 2.83K | 2.76K | 
 | 3 | 15.04M | 85.92K | 71.55K | 154.53K | 165.65K | 161.37K | 
 | 4 | 16.14M | 97.72K | 98.13K | 85.23K | 171.26K | 166.65K | 
-| 5 | 615.99 | 60.36 | 58.82 | 85.23K | 67.84 | 67.78 | 
-| 6 | 93.99K | 741.45 | 644.77 | 85.23K | 1.55K | 1.5K | 
+| 5 | 615.99 | 60.36 | 58.82 | 59.91 | 67.84 | 67.78 | 
+| 6 | 93.99K | 741.45 | 644.77 | 1.2K | 1.55K | 1.5K | 
 | 7 | 93.99K | 877.57 | 782.96 | 1.02K | 1.64K | 1.62K | 
 | 8 | 93.99K | 574.45 | 428.97 | 1.3K | 1.64K | 1.61K | 
 | 9 | 1.17K | 14.69 | 14.18 | 15.37 | 26.98 | 26.44 | 
 | 10 | 1.17K | 108.27 | 100.6 | 15.37 | 136.01 | 141.98 | 
 | 11 | 1.17K | 245.13 | 243.7 | 249.53 | 265.61 | 264.71 |
 
-| Index | MM7(msec) | MM8(msec) | MM9(msec) | MM10(msec) | MM11(msec) |
-| ----- | --------- | --------- | --------- | ---------- | ---------- |
-| 0 | 1.55 | 1.54 | 1.52 | 1.52 | 1.61 | 
-| 1 | 22.15 | 20.48 | 18.11 | 18.06 | 18.21 | 
-| 2 | 492.91 | 422.09 | 320.62 | 315.96 | 305.43 | 
-| 3 | 24.83K | 20.59K | 12.04K | 11.92K | 11.38K | 
-| 4 | 21.0K | 16.14K | 13.87K | 13.57K | 12.89K | 
-| 5 | 59.54 | 60.92 | 57.83 | 58.55 | 60.08 | 
-| 6 | 430.0 | 392.0 | 633.08 | 621.75 | 596.2 | 
-| 7 | 768.82 | 739.29 | 781.01 | 780.77 | 772.6 | 
-| 8 | 513.0 | 484.94 | 522.84 | 509.67 | 478.36 | 
-| 9 | 12.23 | 11.78 | 14.11 | 14.21 | 14.2 | 
-| 10 | 103.53 | 102.3 | 101.97 | 102.28 | 102.05 | 
-| 11 | 244.63 | 243.32 | 244.74 | 245.57 | 245.21 | 
+| Index | MM7(msec) | MM8(msec) | MM9(msec) | MM10(msec) | MM11(msec) | MM12(msec) |
+| ----- | --------- | --------- | --------- | ---------- | ---------- |---------- | 
+| 0 | 1.55 | 1.54 | 1.52 | 1.52 | 1.61 | 1.60 |
+| 1 | 22.15 | 20.48 | 18.11 | 18.06 | 18.21 | 18.14 |
+| 2 | 492.91 | 422.09 | 320.62 | 315.96 | 305.43 | 345.61 |
+| 3 | 24.83K | 20.59K | 12.04K | 11.92K | 11.38K | 1.69K |
+| 4 | 21.0K | 16.14K | 13.87K | 13.57K | 12.89K | 18.83K |
+| 5 | 59.54 | 60.92 | 57.83 | 58.55 | 60.08 | 59.77 |
+| 6 | 430.0 | 392.0 | 633.08 | 621.75 | 596.2 | 596.23 |
+| 7 | 768.82 | 739.29 | 781.01 | 780.77 | 772.6 | 765.33 |
+| 8 | 513.0 | 484.94 | 522.84 | 509.67 | 478.36 | 454.79 |
+| 9 | 12.23 | 11.78 | 14.11 | 14.21 | 14.2 | 14.16 |
+| 10 | 103.53 | 102.3 | 101.97 | 102.28 | 102.05 | 102.73 |
+| 11 | 244.63 | 243.32 | 244.74 | 245.57 | 245.21 | 243.28 |
 
 #### Charts ####
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Result.png?raw=true)
+
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Result_drop_some.png?raw=true)
+
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Throughput.png?raw=true)
+
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Throughput_drop_some.png?raw=true)
+
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Testcase5.png?raw=true)
+
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Testcase5_drop_some.png?raw=true)
+
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Rank.png?raw=true)

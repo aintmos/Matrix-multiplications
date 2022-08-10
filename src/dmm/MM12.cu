@@ -112,8 +112,7 @@ void setMat(dataType *from, size_t fromUnit,
 
 void gemm(  dataType * matrix, dataType * input, dataType * result,
             size_t matUnit, size_t inpUnit, size_t resUnit,
-            dataType * auxMat, dataType * auxInp, dataType * auxRes,
-            size_t auxMatUnit, size_t auxInpUnit, size_t auxResUnit,
+            dataType * auxRes, size_t auxResUnit,
             size_t sizeX, size_t sizeRange, size_t sizeY ){
 
     bool baseCase = isBaseCase(sizeX, sizeRange, sizeY);
@@ -162,8 +161,6 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
         const size_t rowNumAuxauxres = (rowNumAuxres + 1)/2;
         const size_t colNumAuxauxres = (colNumAuxres + 1)/2;
 
-        dataType* auxAuxMat = auxMat + auxMatSize;
-        dataType* auxAuxInp = auxInp + auxInpSize;
         dataType* auxAuxRes = auxRes + auxResSize;
 
         dataType* mat_11 = matrix;
@@ -180,263 +177,121 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
         dataType* res_12 = res_11 + colNumAuxres;
         dataType* res_21 = res_11 + resUnit * rowNumAuxres;
         dataType* res_22 = res_21 + colNumAuxres;
-        
-        ////////////////////////////////////////////////
-        // S3 applied
-        // S3 = mat_11 - mat_21
-        ////////////////////////////////////////////////
 
-        setMat( mat_11, matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmat, colNumAuxmat, 
-                false, false, true);
-                
-        addMat( mat_21, matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmatLeft, colNumAuxmat, false);
-        
-        ////////////////////////////////////////////////
-        // T3 applied
-        // T3 =  - inp_12 + inp_22
-        ////////////////////////////////////////////////
+        //////////////////////////////////////////////////
+        // mat_11 inp_11
+        // Positive : res_11
+        //////////////////////////////////////////////////
 
-        setMat( inp_12,  inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinp, colNumAuxinpLeft, 
-                false, colNumAuxinpLeft != colNumAuxinp, false);
-
-        addMat( inp_22,  inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinpLeft, colNumAuxinpLeft, true);
-        
-        ////////////////////////////////////////////////
-        // M7 applied
-        // M7 = S3 T3
-        // positive: res_21
-        // negative: None
-        ////////////////////////////////////////////////
-        
-        gemm( auxMat, auxInp, auxRes,
-              auxMatUnit, auxInpUnit, auxResUnit,
-              auxAuxMat, auxAuxInp, auxAuxRes, 
-              colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
-              auxSizeX, auxSizeRange, auxSizeY);
-              
-        setMat( auxRes,  auxResUnit, 
-                res_21, resUnit,
-                rowNumAuxresLeft, colNumAuxres, false, false, true);
-
-        ////////////////////////////////////////////////
-        // M1 applied
-        // M1 = mat_11 inp_11
-        // positive: res_11
-        // negative: None
-        ////////////////////////////////////////////////
-        
         gemm( mat_11, inp_11, auxRes,
               matUnit, inpUnit, auxResUnit,
-              auxAuxMat, auxAuxInp, auxAuxRes, 
-              colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
+              auxAuxRes, colNumAuxauxres,
               auxSizeX, auxSizeRange, auxSizeY);
-              
-        setMat( auxRes,  auxResUnit, 
+
+        setMat( auxRes, auxResUnit, 
                 res_11, resUnit,
-                rowNumAuxres, colNumAuxres, false, false, true);
+                rowNumAuxres, colNumAuxres, 
+                false, false, true);
+        //////////////////////////////////////////////////
+        // mat_12 inp_21
+        // Positive : res_11
+        //////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////
-        // S1 applied
-        // S1 = mat_21 + mat_22
-        ////////////////////////////////////////////////
-
-        setMat( mat_21, matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmatLeft, colNumAuxmat, 
-                rowNumAuxmatLeft != rowNumAuxmat, false, true);
-        
-        addMat( mat_22, matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmatLeft, colNumAuxmatLeft, true);
-
-        ////////////////////////////////////////////////
-        // T1 applied
-        // T1 =  - inp_11 + inp_12
-        ////////////////////////////////////////////////
-        
-        setMat( inp_11,  inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinp, colNumAuxinp, false, false, false);
-
-        addMat( inp_12,  inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinp, colNumAuxinpLeft, true);
-
-
-        ////////////////////////////////////////////////
-        // M5 applied
-        // M5 = S1T1
-        // positive: res_12, res_22
-        // negative: None
-        ////////////////////////////////////////////////
-
-        gemm( auxMat, auxInp, auxRes,
-              auxMatUnit, auxInpUnit, auxResUnit,
-              auxAuxMat, auxAuxInp, auxAuxRes, 
-              colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
-              auxSizeX, auxSizeRange, auxSizeY);
+        gemm( mat_12, inp_21, auxRes,
+              matUnit, inpUnit, auxResUnit,
+              auxAuxRes, colNumAuxauxres,
+              auxSizeX, auxSizeRangeLeft, auxSizeY);
               
-        setMat( auxRes,  auxResUnit, 
-                res_12, resUnit,
-                rowNumAuxres, colNumAuxresLeft, false, false, true);
-                
-        setMat( auxRes,  auxResUnit, 
-                res_22, resUnit,
-                rowNumAuxresLeft, colNumAuxresLeft, false, false, true);
-
-        ////////////////////////////////////////////////
-        // S2 applied
-        // S2 = S1 - mat_11
-        ////////////////////////////////////////////////
-        
-        addMat( mat_11, matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmat, colNumAuxmat, false);
-
-
-        ////////////////////////////////////////////////
-        // -T2 applied
-        // -T2 = T1 - inp_22
-        ////////////////////////////////////////////////
-
-        addMat( inp_22,  inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinpLeft, colNumAuxinpLeft, false);
-
-        ////////////////////////////////////////////////
-        // -M6 applied
-        // -M6 = S2 * -T2
-        // positive: None
-        // negative: None
-        ////////////////////////////////////////////////
-
-        gemm( auxMat, auxInp, auxRes,
-              auxMatUnit, auxInpUnit, auxResUnit,
-              auxAuxMat, auxAuxInp, auxAuxRes, 
-              colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
-              auxSizeX, auxSizeRange, auxSizeY);
-
-        ////////////////////////////////////////////////
-        // -U2 applied
-        // -U2 = -M6 - M1(from res_11)
-        ////////////////////////////////////////////////
-
-        addMat( res_11, resUnit, 
-                auxRes, auxResUnit,
-                rowNumAuxres, colNumAuxres, false);
-
-        ////////////////////////////////////////////////
-        // U4 applied
-        // U4(at res_12) = M5 -(-U2)
-        ////////////////////////////////////////////////
-
         addMat( auxRes, auxResUnit, 
+                res_11, resUnit,
+                rowNumAuxres, colNumAuxres, true);
+
+        //////////////////////////////////////////////////
+        // mat_11 inp_12
+        // Positive : res_12
+        //////////////////////////////////////////////////
+
+        gemm( mat_11, inp_12, auxRes,
+              matUnit, inpUnit, auxResUnit,
+              auxAuxRes, colNumAuxauxres,
+              auxSizeX, auxSizeRange, auxSizeYLeft);
+
+        setMat( auxRes, auxResUnit, 
                 res_12, resUnit,
-                rowNumAuxres, colNumAuxresLeft, false);
+                rowNumAuxres, colNumAuxresLeft,
+                false, false, true);
 
-        ////////////////////////////////////////////////
-        // U3 applied
-        // U3(at res_21) = M7(at res_21) -(-U2)
-        ////////////////////////////////////////////////
+        //////////////////////////////////////////////////
+        // mat_12 inp_22
+        // Positive : res_12
+        //////////////////////////////////////////////////
 
-        addMat( auxRes, auxResUnit, 
-                res_21, resUnit,
-                rowNumAuxresLeft, colNumAuxres, false);
-
-        ////////////////////////////////////////////////
-        // U7 applied
-        // U7(at res_22) = U3(at res_21) + M5(at res_22)
-        ////////////////////////////////////////////////
-
-        addMat( res_21, resUnit, 
-                res_22, resUnit,
-                rowNumAuxresLeft, colNumAuxresLeft, true);
-
-        ////////////////////////////////////////////////
-        // -S4 applied
-        // -S4 = S2 - mat_12
-        ////////////////////////////////////////////////
-
-        addMat( mat_12,  matUnit, 
-                auxMat, auxMatUnit,
-                rowNumAuxmat, colNumAuxmatLeft, false);
-
-        ////////////////////////////////////////////////
-        // -T4 applied
-        // -T4 =  inp_21 + (-T2)
-        ////////////////////////////////////////////////
-
-        addMat( inp_21, inpUnit, 
-                auxInp, auxInpUnit,
-                rowNumAuxinpLeft, colNumAuxinp, true);
-
-        ////////////////////////////////////////////////
-        // -M3 applied
-        // -M3 = (-S4) inp_22
-        ////////////////////////////////////////////////
-
-        gemm( auxMat, inp_22, auxRes,
-              auxMatUnit, inpUnit, auxResUnit,
-              auxAuxMat, auxAuxInp, auxAuxRes, 
-              colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
+        gemm( mat_12, inp_22, auxRes,
+              matUnit, inpUnit, auxResUnit,
+              auxAuxRes, colNumAuxauxres,
               auxSizeX, auxSizeRangeLeft, auxSizeYLeft);
-
-        ////////////////////////////////////////////////
-        // U5 applied
-        // U5(at res_12) = U4(at res_12) - (-M3)
-        ////////////////////////////////////////////////
-        
+              
         addMat( auxRes, auxResUnit, 
                 res_12, resUnit,
-                rowNumAuxres, colNumAuxresLeft, false);
+                rowNumAuxres, colNumAuxresLeft, true);
 
-        ////////////////////////////////////////////////
-        // -M4 applied
-        // -M4 = mat_22 (-T4)
-        ////////////////////////////////////////////////
+        //////////////////////////////////////////////////
+        // mat_21 inp_11
+        // Positive : res_21
+        //////////////////////////////////////////////////
 
-        gemm( mat_22, auxInp, auxRes,
-              matUnit, auxInpUnit, auxResUnit,
-              auxAuxMat, auxAuxInp, auxAuxRes, 
-              colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
+        gemm( mat_21, inp_11, auxRes,
+              matUnit, inpUnit, auxResUnit,
+              auxAuxRes, colNumAuxauxres,
+              auxSizeXLeft, auxSizeRange, auxSizeY);
+
+        setMat( auxRes, auxResUnit, 
+                res_21, resUnit,
+                rowNumAuxresLeft, colNumAuxres,
+                false, false, true);
+
+        //////////////////////////////////////////////////
+        // mat_22 inp_21
+        // Positive : res_21
+        //////////////////////////////////////////////////
+
+        gemm( mat_22, inp_21, auxRes,
+              matUnit, inpUnit, auxResUnit,
+              auxAuxRes, colNumAuxauxres,
               auxSizeXLeft, auxSizeRangeLeft, auxSizeY);
-
-        ////////////////////////////////////////////////
-        // U6 applied
-        // U6(at res_21) = U3(at res_21) + (-M4)
-        ////////////////////////////////////////////////
-
+              
         addMat( auxRes, auxResUnit, 
                 res_21, resUnit,
                 rowNumAuxresLeft, colNumAuxres, true);
 
-        ////////////////////////////////////////////////
-        // M2 applied
-        // M2 = mat_12 inp_21
-        ////////////////////////////////////////////////
+        //////////////////////////////////////////////////
+        // mat_21 inp_12
+        // Positive : res_22
+        //////////////////////////////////////////////////
 
-        gemm( mat_12, inp_21, auxRes,
+        gemm( mat_21, inp_12, auxRes,
               matUnit, inpUnit, auxResUnit,
-              auxAuxMat, auxAuxInp, auxAuxRes, 
-              colNumAuxauxmat, colNumAuxauxinp, colNumAuxauxres,
-              auxSizeX, auxSizeRangeLeft, auxSizeY);
+              auxAuxRes, colNumAuxauxres,
+              auxSizeXLeft, auxSizeRange, auxSizeYLeft);
 
-        ////////////////////////////////////////////////
-        // U1 applied
-        // U1(res_11) = M1 + M2
-        ////////////////////////////////////////////////
+        setMat( auxRes, auxResUnit, 
+                res_22, resUnit,
+                rowNumAuxresLeft, colNumAuxresLeft,
+                false, false, true);
 
+        //////////////////////////////////////////////////
+        // mat_22 inp_22
+        // Positive : res_22
+        //////////////////////////////////////////////////
+
+        gemm( mat_22, inp_22, auxRes,
+              matUnit, inpUnit, auxResUnit,
+              auxAuxRes, colNumAuxauxres,
+              auxSizeXLeft, auxSizeRangeLeft, auxSizeYLeft);
+              
         addMat( auxRes, auxResUnit, 
-                res_11, resUnit,
-                rowNumAuxres, colNumAuxres, true);
+                res_22, resUnit,
+                rowNumAuxresLeft, colNumAuxresLeft, true);
     }
 }
 
@@ -453,8 +308,6 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t colNumRes = colSize;
 
     //Get auxiliary requirement size
-    size_t auxSize_Mat = 0;
-    size_t auxSize_Inp = 0;
     size_t auxSize_Res = 0;
     {
         size_t auxRow = rowSize;
@@ -465,14 +318,12 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
             auxCol = (auxCol + 1)/2;
             auxRange = (auxRange + 1)/2;
             
-            auxSize_Mat += auxRow * auxRange;
-            auxSize_Inp += auxRange * auxCol;
             auxSize_Res += auxRow * auxCol;
         }
     }
 
-    HANDLE_ERROR(cudaMalloc(&matrix_GPU, sizeof(dataType)*(rowNumMat*colNumMat + auxSize_Mat)));
-    HANDLE_ERROR(cudaMalloc(&input_GPU,  sizeof(dataType)*(rowNumInp*colNumInp + auxSize_Inp)));
+    HANDLE_ERROR(cudaMalloc(&matrix_GPU, sizeof(dataType)*(rowNumMat*colNumMat)));
+    HANDLE_ERROR(cudaMalloc(&input_GPU,  sizeof(dataType)*(rowNumInp*colNumInp)));
     HANDLE_ERROR(cudaMalloc(&res_GPU,    sizeof(dataType)*(rowNumRes*colNumRes + auxSize_Res)));
 
     for(int i = 0; i < rowNumMat; ++i){
@@ -488,14 +339,11 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start));
 
-    const size_t matSize = colNumMat * rowNumMat;
-    const size_t inpSize = colNumInp * rowNumInp;
     const size_t resSize = colNumRes * rowNumRes;
 
     gemm(   matrix_GPU, input_GPU, res_GPU,
             colNumMat, colNumInp, colNumRes,
-            matrix_GPU + matSize, input_GPU + inpSize, res_GPU + resSize,
-            (colNumMat + 1)/2, (colNumInp + 1)/2, (colNumRes + 1)/2,
+            res_GPU + resSize, (colNumRes + 1)/2,
             rowNumMat, colNumMat, colNumInp);
     
     HANDLE_ERROR(cudaEventRecord(stop));
