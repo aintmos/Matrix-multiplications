@@ -111,7 +111,7 @@ This repository consists of many matrix multiplication algorithms.
 | 11 | 6.18G | 6.26G | 6.28G | 6.26G | 6.27G | 6.23G | 
 | 12 | 2.6G | 2.62G | 2.6G | 2.59G | 2.6G | 2.62G |
 
-##### Execution percentage #####
+##### Execution time percentage #####
 
 | Index | MM1(%) | MM2(%) | MM3(%) | MM4(%) | MM5(%) | MM6(%) |
 | ----- | --- | --- | --- | --- | --- | --- |
