@@ -85,6 +85,10 @@ This repository consists of many matrix multiplication algorithms.
 
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Throughput_drop_some.png?raw=true)
 
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Percentage.png?raw=true)
+
+![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Percentage_drop_some.png?raw=true)
+
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Testcase5.png?raw=true)
 
 ![Experiment result](https://github.com/aintmos/Matrix-multiplications/blob/main/doc/Testcase5_drop_some.png?raw=true)
