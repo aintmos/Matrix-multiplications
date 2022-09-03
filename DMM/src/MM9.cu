@@ -60,7 +60,7 @@ __global__ void SubM_Kernel(dataType *from, size_t fromUnit,
 }
 
 bool isBaseCase(size_t sizeX, size_t sizeRange, size_t sizeY){
-    return sizeX * sizeRange<= 1048576 || sizeRange * sizeY <= 1048576 || sizeX * sizeY <= 1048576 ||
+    return sizeX * sizeRange<= 1024 * 1024 || sizeRange * sizeY <= 1024 * 1024 || sizeX * sizeY <= 1024 * 1024 ||
         sizeX <= 32 || sizeRange <= 32 || sizeY <= 32;
     //return sizeX <= 1024 || sizeRange <= 1024 || sizeY <= 1024;
 }
