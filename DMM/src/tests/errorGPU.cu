@@ -1,4 +1,7 @@
 #include <iostream>
+#include <iomanip>
+#include <cmath>
+#include <limits>
 #include <time.h>
 #include "common.hpp"
 #include "GPUdebug.hpp"
@@ -62,7 +65,7 @@ extern float gemm(dataType** matrix, dataType** input, dataType** res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
 dataType randomF(){
-    return (rand()%3) - 1;
+    return (((double)rand())/RAND_MAX) * 2 - 1;
 }
 
 int main(int argc, char **argv){
@@ -99,7 +102,7 @@ int main(int argc, char **argv){
 
     dataType **matrix = new dataType*[sizeX];
     for(int i = 0; i < sizeX; ++i){
-        matrix[i] = new int[sizeRange];
+        matrix[i] = new dataType[sizeRange];
         for(int j = 0; j < sizeRange; ++j){
             matrix[i][j] = randomF();
         }
@@ -107,7 +110,7 @@ int main(int argc, char **argv){
     
     dataType **input = new dataType*[sizeRange];
     for(int i = 0; i < sizeRange; ++i){
-        input[i] = new int[sizeY];
+        input[i] = new dataType[sizeY];
         for(int j = 0; j < sizeY; ++j){
             input[i][j] = randomF();
         }
@@ -115,25 +118,30 @@ int main(int argc, char **argv){
     
     dataType **res1 = new dataType*[sizeX];
     for(int i = 0; i < sizeX; ++i){
-        res1[i] = new int[sizeY];
+        res1[i] = new dataType[sizeY];
     }
     
     dataType **res2 = new dataType*[sizeX];
     for(int i = 0; i < sizeX; ++i){
-        res2[i] = new int[sizeY];
+        res2[i] = new dataType[sizeY];
     }
 
     MM_Correct(matrix, input, res1, sizeX, sizeRange, sizeY);
+    HANDLE_ERROR(cudaGetLastError());
+    HANDLE_ERROR(cudaDeviceSynchronize());
+    HANDLE_ERROR(cudaGetLastError());
     gemm(matrix, input, res2, sizeX, sizeRange, sizeY);
+    HANDLE_ERROR(cudaGetLastError());
+    HANDLE_ERROR(cudaDeviceSynchronize());
+    HANDLE_ERROR(cudaGetLastError());
+    double errorRatio = 0;
     for(int i = 0; i < sizeX; ++i){
         for(int j = 0; j < sizeY; ++j){
-            dataType delta = abs(res1[i][j] - res2[i][j]);
-            if(delta != 0){
-                cout << "Error\n" << i << "," << j << "\n" <<res1[i][j] << " - " << res2[i][j] << " = " << delta << "\n";
-                return 0;
-            }
+            if((abs(res1[i][j]) + abs(res2[i][j])) != 0)
+                errorRatio += abs(res1[i][j] - res2[i][j])/(abs(res1[i][j]) + abs(res2[i][j]));
         }
     }
+    errorRatio /= (sizeX * sizeY);
 
     for(int i = 0; i < sizeX; ++i)
         delete[] matrix[i];
@@ -149,6 +157,6 @@ int main(int argc, char **argv){
     delete[] res1;
     delete[] res2;
     
-    cout << "Pass\n";
+    cout << "Error : " << std::setprecision(std::numeric_limits<long double>::digits10 + 1) << errorRatio << "\n";
     return 0;
 }

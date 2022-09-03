@@ -10,8 +10,8 @@ __global__ void MM_Kernel(dataType* matrix, dataType* input, dataType* res,
     size_t globalRowIdx = li + bi * bis;
     size_t globalColIdx = lj + bj * bjs;
     dataType acc = 0;
-    __shared__ int subMatrix[subBlockSize][subBlockSize];
-    __shared__ int subInput[subBlockSize][subBlockSize];
+    __shared__ dataType subMatrix[subBlockSize][subBlockSize];
+    __shared__ dataType subInput[subBlockSize][subBlockSize];
     for(int k = 0; k < (sizeRange + subBlockSize - 1)/subBlockSize; ++k){
         size_t localMatRowIdx = globalRowIdx;
         size_t localMatColIdx = lj + subBlockSize * k;

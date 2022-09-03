@@ -45,7 +45,7 @@ int main(int argc, char **argv){
 
     dataType **matrix = new dataType*[sizeX];
     for(int i = 0; i < sizeX; ++i){
-        matrix[i] = new int[sizeRange];
+        matrix[i] = new dataType[sizeRange];
         for(int j = 0; j < sizeRange; ++j){
             matrix[i][j] = randomF();
         }
@@ -53,7 +53,7 @@ int main(int argc, char **argv){
     
     dataType **input = new dataType*[sizeRange];
     for(int i = 0; i < sizeRange; ++i){
-        input[i] = new int[sizeY];
+        input[i] = new dataType[sizeY];
         for(int j = 0; j < sizeY; ++j){
             input[i][j] = randomF();
         }
@@ -61,7 +61,7 @@ int main(int argc, char **argv){
     
     dataType **res = new dataType*[sizeX];
     for(int i = 0; i < sizeX; ++i){
-        res[i] = new int[sizeY];
+        res[i] = new dataType[sizeY];
     }
 
     HANDLE_ERROR(cudaEventRecord(start));
