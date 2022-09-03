@@ -92,7 +92,3 @@ add_executable(MMCGPU11 src/tests/correctnessGPU.cu)
 target_link_libraries(MMCGPU11 MML11)
 add_executable(MMCGPU12 src/tests/correctnessGPU.cu)
 target_link_libraries(MMCGPU12 MML12)
-
-#Detailed test by read actual values 
-add_executable(get src/tests/get.cu)
-target_link_libraries(get MML12)
