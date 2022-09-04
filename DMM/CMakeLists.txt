@@ -18,6 +18,7 @@ add_library(MML10 src/MM10.cu) # Data transfer optimized Strassen's
 add_library(MML11 src/MM11.cu) # Winograd's
 add_library(MML12 src/MM12.cu) # Blocked
 add_library(MML13 src/MM13.cu) # Cublas
+target_link_libraries(MML13 -lcublas -lcurand)
 
 add_executable(MMP1  src/tests/performance.cu)
 target_link_libraries(MMP1 MML1)

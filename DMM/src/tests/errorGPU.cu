@@ -20,7 +20,7 @@ __global__ void MM_Kernel__correct(dataType* matrix, dataType* input, dataType* 
     }
 }
 
-float MM_Correct(dataType** matrix, dataType** input, dataType** res,
+float MM_Correct(dataType* matrix, dataType* input, dataType* res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize){
     const size_t rowNumMat = rowSize;
     const size_t rowNumInp = rangeSize;
@@ -34,12 +34,9 @@ float MM_Correct(dataType** matrix, dataType** input, dataType** res,
     HANDLE_ERROR(cudaMalloc(&matrix_GPU, sizeof(dataType)*rowNumMat*colNumMat));
     HANDLE_ERROR(cudaMalloc(&input_GPU, sizeof(dataType)*rowNumInp*colNumInp));
     HANDLE_ERROR(cudaMalloc(&res_GPU, sizeof(dataType)*rowNumRes*colNumRes));
-    for(int i = 0; i < rowNumMat; ++i){
-        HANDLE_ERROR(cudaMemcpy(matrix_GPU + colNumMat * i, matrix[i], sizeof(dataType) * colNumMat, cudaMemcpyHostToDevice));
-    }
-    for(int i = 0; i < rowNumInp; ++i){
-        HANDLE_ERROR(cudaMemcpy(input_GPU + colNumInp * i, input[i], sizeof(dataType) * colNumInp, cudaMemcpyHostToDevice));
-    }
+
+    HANDLE_ERROR(cudaMemcpy(matrix_GPU, matrix, sizeof(dataType) * colNumMat * rowNumMat, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(input_GPU, input, sizeof(dataType) * colNumInp * rowNumInp, cudaMemcpyHostToDevice));
 
     int work = rowNumRes * colNumRes;
     cudaEvent_t start, stop;
@@ -52,16 +49,14 @@ float MM_Correct(dataType** matrix, dataType** input, dataType** res,
     HANDLE_ERROR(cudaEventSynchronize(stop));
     HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
 
-    for(int i = 0; i < rowNumRes; ++i){
-        HANDLE_ERROR(cudaMemcpy(res[i], res_GPU + colNumRes * i, sizeof(dataType) * colNumRes, cudaMemcpyDeviceToHost));
-    }
+    HANDLE_ERROR(cudaMemcpy(res, res_GPU, sizeof(dataType) * colNumRes * rowNumRes, cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaFree(matrix_GPU));
     HANDLE_ERROR(cudaFree(input_GPU));
     HANDLE_ERROR(cudaFree(res_GPU));
     return milliseconds;
 }
 
-extern float gemm(dataType** matrix, dataType** input, dataType** res,
+extern float gemm(dataType* matrix, dataType* input, dataType* res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
 dataType randomF(){
@@ -100,32 +95,23 @@ int main(int argc, char **argv){
         ++v;
     }
 
-    dataType **matrix = new dataType*[sizeX];
+    dataType *matrix = new dataType[sizeX * sizeRange];
     for(int i = 0; i < sizeX; ++i){
-        matrix[i] = new dataType[sizeRange];
         for(int j = 0; j < sizeRange; ++j){
-            matrix[i][j] = randomF();
+            matrix[i * sizeX + j] = randomF();
         }
     }
     
-    dataType **input = new dataType*[sizeRange];
+    dataType *input = new dataType[sizeRange * sizeY];
     for(int i = 0; i < sizeRange; ++i){
-        input[i] = new dataType[sizeY];
         for(int j = 0; j < sizeY; ++j){
-            input[i][j] = randomF();
+            input[i * sizeRange + j] = randomF();
         }
     }
     
-    dataType **res1 = new dataType*[sizeX];
-    for(int i = 0; i < sizeX; ++i){
-        res1[i] = new dataType[sizeY];
-    }
+    dataType *res1 = new dataType[sizeX * sizeY];
+    dataType *res2 = new dataType[sizeX * sizeY];
     
-    dataType **res2 = new dataType*[sizeX];
-    for(int i = 0; i < sizeX; ++i){
-        res2[i] = new dataType[sizeY];
-    }
-
     MM_Correct(matrix, input, res1, sizeX, sizeRange, sizeY);
     HANDLE_ERROR(cudaGetLastError());
     HANDLE_ERROR(cudaDeviceSynchronize());
@@ -137,21 +123,12 @@ int main(int argc, char **argv){
     double errorRatio = 0;
     for(int i = 0; i < sizeX; ++i){
         for(int j = 0; j < sizeY; ++j){
-            if((abs(res1[i][j]) + abs(res2[i][j])) != 0)
-                errorRatio += abs(res1[i][j] - res2[i][j])/(abs(res1[i][j]) + abs(res2[i][j]));
+            if((abs(res1[i * sizeX + j]) + abs(res2[i * sizeX + j])) != 0)
+                errorRatio += abs(res1[i * sizeX + j] - res2[i * sizeX + j])/(abs(res1[i * sizeX + j]) + abs(res2[i * sizeX + j]));
         }
     }
     errorRatio /= (sizeX * sizeY);
 
-    for(int i = 0; i < sizeX; ++i)
-        delete[] matrix[i];
-    for(int i = 0; i < sizeRange; ++i)
-        delete[] input[i];
-    for(int i = 0; i < sizeX; ++i){
-        delete[] res1[i];
-        delete[] res2[i];
-    }
-    
     delete[] matrix;
     delete[] input;
     delete[] res1;

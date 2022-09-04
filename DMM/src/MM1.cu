@@ -3,7 +3,7 @@
 
 using namespace std;
 
-float gemm(dataType** matrix, dataType** input, dataType** res,
+float gemm(dataType* matrix, dataType* input, dataType* res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize){
     const size_t rowNumMat = rowSize;
     const size_t rowNumInp = rangeSize;
@@ -18,9 +18,9 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     HANDLE_ERROR(cudaEventRecord(start));
     for(int i = 0; i < rowNumRes; ++i){
         for(int j = 0; j < colNumRes; ++j){
-            res[i][j] = 0;
+            res[i * rowSize + j] = 0;
             for(int k = 0; k < colNumMat; ++k){
-                res[i][j] += matrix[i][k] * input[k][j];
+                res[i * rowSize + j] += matrix[i * rowSize + k] * input[k * rangeSize + j];
             }
         }
     }

@@ -296,7 +296,7 @@ void gemm(  dataType * matrix, dataType * input, dataType * result,
 }
 
 
-float gemm(dataType** matrix, dataType** input, dataType** res,
+float gemm(dataType* matrix, dataType* input, dataType* res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize){
     dataType *matrix_GPU, *input_GPU, *res_GPU;
     
@@ -325,13 +325,8 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     HANDLE_ERROR(cudaMalloc(&matrix_GPU, sizeof(dataType)*(rowNumMat*colNumMat)));
     HANDLE_ERROR(cudaMalloc(&input_GPU,  sizeof(dataType)*(rowNumInp*colNumInp)));
     HANDLE_ERROR(cudaMalloc(&res_GPU,    sizeof(dataType)*(rowNumRes*colNumRes + auxSize_Res)));
-
-    for(int i = 0; i < rowNumMat; ++i){
-        HANDLE_ERROR(cudaMemcpy(matrix_GPU + colNumMat * i, matrix[i], sizeof(dataType)*colNumMat, cudaMemcpyHostToDevice));
-    }
-    for(int i = 0; i < rowNumInp; ++i){
-        HANDLE_ERROR(cudaMemcpy(input_GPU + colNumInp * i, input[i], sizeof(dataType)*colNumInp, cudaMemcpyHostToDevice));
-    }
+    HANDLE_ERROR(cudaMemcpy(matrix_GPU, matrix, sizeof(dataType) * colNumMat * rowNumMat, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(input_GPU, input, sizeof(dataType) * colNumInp * rowNumInp, cudaMemcpyHostToDevice));
 
     cudaEvent_t start, stop;
     float milliseconds = 0;
@@ -345,15 +340,11 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
             colNumMat, colNumInp, colNumRes,
             res_GPU + resSize, (colNumRes + 1)/2,
             rowNumMat, colNumMat, colNumInp);
+    HANDLE_ERROR(cudaMemcpy(res, res_GPU, sizeof(dataType) * colNumRes * rowNumRes, cudaMemcpyDeviceToHost));
     
     HANDLE_ERROR(cudaEventRecord(stop));
     HANDLE_ERROR(cudaEventSynchronize(stop));
     HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
-
-    for(int i = 0; i < rowNumRes; ++i){
-        HANDLE_ERROR(cudaMemcpy(res[i], res_GPU + colNumRes * i, sizeof(dataType)*colNumRes, cudaMemcpyDeviceToHost));
-    }
-
     HANDLE_ERROR(cudaFree(matrix_GPU));
     HANDLE_ERROR(cudaFree(input_GPU));
     HANDLE_ERROR(cudaFree(res_GPU));

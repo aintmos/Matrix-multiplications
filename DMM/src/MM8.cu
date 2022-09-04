@@ -35,7 +35,7 @@ __global__ void MM_Kernel(dataType* matrix, dataType* input, dataType* res,
         res[globalRowIdx * resUnit + globalColIdx] = acc;
 }
 
-float gemm(dataType** matrix, dataType** input, dataType** res,
+float gemm(dataType* matrix, dataType* input, dataType* res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize){
         
     const size_t rowNumMat = rowSize;
@@ -50,12 +50,8 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     HANDLE_ERROR(cudaMalloc(&matrix_GPU, sizeof(dataType)*rowNumMat*colNumMat));
     HANDLE_ERROR(cudaMalloc(&input_GPU, sizeof(dataType)*rowNumInp*colNumInp));
     HANDLE_ERROR(cudaMalloc(&res_GPU, sizeof(dataType)*rowNumRes*colNumRes));
-    for(int i = 0; i < rowNumMat; ++i){
-        HANDLE_ERROR(cudaMemcpy(matrix_GPU + colNumMat * i, matrix[i], sizeof(dataType)*colNumMat, cudaMemcpyHostToDevice));
-    }
-    for(int i = 0; i < rowNumInp; ++i){
-        HANDLE_ERROR(cudaMemcpy(input_GPU + colNumInp * i, input[i], sizeof(dataType)*colNumInp, cudaMemcpyHostToDevice));
-    }
+    HANDLE_ERROR(cudaMemcpy(matrix_GPU, matrix, sizeof(dataType) * colNumMat * rowNumMat, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(input_GPU, input, sizeof(dataType) * colNumInp * rowNumInp, cudaMemcpyHostToDevice));
 
     dim3 threadDim(rowNumRes > subBlockSize ? subBlockSize : rowNumRes , colNumRes > subBlockSize ? subBlockSize : colNumRes);
     dim3 blockDim((rowNumRes + subBlockSize - 1)/subBlockSize , (colNumRes + subBlockSize - 1)/subBlockSize);
@@ -65,13 +61,10 @@ float gemm(dataType** matrix, dataType** input, dataType** res,
     HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start));
     MM_Kernel<<<blockDim, threadDim>>>(matrix_GPU, input_GPU, res_GPU, rowSize, rangeSize, colSize, colSize, rangeSize, colSize);
+    HANDLE_ERROR(cudaMemcpy(res, res_GPU, sizeof(dataType) * colNumRes * rowNumRes, cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaEventRecord(stop));
     HANDLE_ERROR(cudaEventSynchronize(stop));
     HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
-
-    for(int i = 0; i < rowNumRes; ++i){
-        HANDLE_ERROR(cudaMemcpy(res[i], res_GPU + colNumRes * i, sizeof(dataType)*colNumRes, cudaMemcpyDeviceToHost));
-    }
     HANDLE_ERROR(cudaFree(matrix_GPU));
     HANDLE_ERROR(cudaFree(input_GPU));
     HANDLE_ERROR(cudaFree(res_GPU));

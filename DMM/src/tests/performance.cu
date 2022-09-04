@@ -4,7 +4,7 @@
 #include "common.hpp"
 
 using namespace std;
-extern float gemm(dataType** matrix, dataType** input, dataType** res,
+extern float gemm(dataType* matrix, dataType* input, dataType* res,
     const size_t rowSize, const size_t rangeSize, const size_t colSize);
 
 dataType randomF(){
@@ -43,26 +43,21 @@ int main(int argc, char **argv){
         ++v;
     }
 
-    dataType **matrix = new dataType*[sizeX];
+    dataType *matrix = new dataType[sizeX * sizeRange];
     for(int i = 0; i < sizeX; ++i){
-        matrix[i] = new dataType[sizeRange];
         for(int j = 0; j < sizeRange; ++j){
-            matrix[i][j] = randomF();
+            matrix[i * sizeX + j] = randomF();
         }
     }
     
-    dataType **input = new dataType*[sizeRange];
+    dataType *input = new dataType[sizeRange * sizeY];
     for(int i = 0; i < sizeRange; ++i){
-        input[i] = new dataType[sizeY];
         for(int j = 0; j < sizeY; ++j){
-            input[i][j] = randomF();
+            input[i * sizeRange + j] = randomF();
         }
     }
     
-    dataType **res = new dataType*[sizeX];
-    for(int i = 0; i < sizeX; ++i){
-        res[i] = new dataType[sizeY];
-    }
+    dataType *res = new dataType[sizeX * sizeY];
 
     HANDLE_ERROR(cudaEventRecord(start));
     float kernel_time = gemm(matrix, input, res, sizeX, sizeRange, sizeY);
@@ -72,13 +67,6 @@ int main(int argc, char **argv){
     HANDLE_ERROR(cudaEventElapsedTime(&milliseconds, start, stop));
     cout << milliseconds << " " << kernel_time << "\n";
 
-    for(int i = 0; i < sizeX; ++i)
-        delete[] matrix[i];
-    for(int i = 0; i < sizeRange; ++i)
-        delete[] input[i];
-    for(int i = 0; i < sizeX; ++i){
-        delete[] res[i];
-    }
     delete[] matrix;
     delete[] input;
     delete[] res;
