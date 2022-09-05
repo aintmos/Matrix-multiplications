@@ -42,23 +42,23 @@ int main(int argc, char **argv){
         sizeY += *v - '0';
         ++v;
     }
+    printf("%d %d %d\n", sizeX, sizeRange, sizeY);
 
     dataType *matrix = new dataType[sizeX * sizeRange];
     for(int i = 0; i < sizeX; ++i){
         for(int j = 0; j < sizeRange; ++j){
-            matrix[i * sizeX + j] = randomF();
+            matrix[i * sizeRange + j] = randomF();
         }
     }
     
     dataType *input = new dataType[sizeRange * sizeY];
     for(int i = 0; i < sizeRange; ++i){
         for(int j = 0; j < sizeY; ++j){
-            input[i * sizeRange + j] = randomF();
+            input[i * sizeY + j] = randomF();
         }
     }
     
     dataType *res = new dataType[sizeX * sizeY];
-
     HANDLE_ERROR(cudaEventRecord(start));
     float kernel_time = gemm(matrix, input, res, sizeX, sizeRange, sizeY);
     HANDLE_ERROR(cudaEventRecord(stop));

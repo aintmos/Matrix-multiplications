@@ -58,5 +58,6 @@ float gemm(dataType* matrix, dataType* input, dataType* res,
     HANDLE_ERROR(cudaFree(matrix_GPU));
     HANDLE_ERROR(cudaFree(input_GPU));
     HANDLE_ERROR(cudaFree(res_GPU));
+    HANDLE_CUBLAS_ERROR(cublasDestroy(handle));
     return milliseconds;
 }

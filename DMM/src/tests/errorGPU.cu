@@ -98,14 +98,14 @@ int main(int argc, char **argv){
     dataType *matrix = new dataType[sizeX * sizeRange];
     for(int i = 0; i < sizeX; ++i){
         for(int j = 0; j < sizeRange; ++j){
-            matrix[i * sizeX + j] = randomF();
+            matrix[i * sizeRange + j] = randomF();
         }
     }
     
     dataType *input = new dataType[sizeRange * sizeY];
     for(int i = 0; i < sizeRange; ++i){
         for(int j = 0; j < sizeY; ++j){
-            input[i * sizeRange + j] = randomF();
+            input[i * sizeY + j] = randomF();
         }
     }
     
