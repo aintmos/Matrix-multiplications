@@ -42,7 +42,6 @@ int main(int argc, char **argv){
         sizeY += *v - '0';
         ++v;
     }
-    printf("%d %d %d\n", sizeX, sizeRange, sizeY);
 
     dataType *matrix = new dataType[sizeX * sizeRange];
     for(int i = 0; i < sizeX; ++i){

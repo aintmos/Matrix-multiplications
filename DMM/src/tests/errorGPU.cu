@@ -123,8 +123,8 @@ int main(int argc, char **argv){
     double errorRatio = 0;
     for(int i = 0; i < sizeX; ++i){
         for(int j = 0; j < sizeY; ++j){
-            if((abs(res1[i * sizeX + j]) + abs(res2[i * sizeX + j])) != 0)
-                errorRatio += abs(res1[i * sizeX + j] - res2[i * sizeX + j])/(abs(res1[i * sizeX + j]) + abs(res2[i * sizeX + j]));
+            if((abs(res1[i * sizeY + j]) + abs(res2[i * sizeY + j])) != 0)
+                errorRatio += abs(res1[i * sizeY + j] - res2[i * sizeY + j])/(abs(res1[i * sizeY + j]) + abs(res2[i * sizeY + j]));
         }
     }
     errorRatio /= (sizeX * sizeY);
